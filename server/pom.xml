@@ -7,7 +7,7 @@
         <groupId>com.etelie.demo</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../parent-pom.xml</relativePath>
+        <relativePath>../pom-parent.xml</relativePath>
     </parent>
 
     <artifactId>server</artifactId>
