@@ -1,5 +1,6 @@
 package com.etelie.demo.server;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
@@ -13,33 +14,28 @@ import org.springframework.context.annotation.Configuration;
 public class OpentelemetryConfig {
 
     @Bean
-    public OpenTelemetry initOpenTelemetry(
-            SdkLoggerProvider sdkLoggerProvider,
-            SdkTracerProvider sdkTracerProvider,
-            SdkMeterProvider sdkMeterProvider
-    ) {
-        return OpenTelemetrySdk.builder()
-                .setLoggerProvider(sdkLoggerProvider)
-                .setTracerProvider(sdkTracerProvider)
-                .setMeterProvider(sdkMeterProvider)
-                .buildAndRegisterGlobal();
+    public OpenTelemetry openTelemetry() {
+        OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
+                .setLoggerProvider(loggerProvider())
+                .setTracerProvider(tracerProvider())
+                .setMeterProvider(meterProvider())
+                .build();
+        GlobalOpenTelemetry.set(openTelemetry);
+        return openTelemetry;
     }
 
-    @Bean
-    public SdkLoggerProvider openTelemetryLoggerProvider() {
+    public SdkLoggerProvider loggerProvider() {
         return SdkLoggerProvider.builder()
                 .build();
     }
 
-    @Bean
-    public SdkTracerProvider openTelemetryTracerProvider() {
+    public SdkTracerProvider tracerProvider() {
         return SdkTracerProvider.builder()
                 .setSampler(Sampler.alwaysOn())
                 .build();
     }
 
-    @Bean
-    public SdkMeterProvider openTelemetryMeterProvider() {
+    public SdkMeterProvider meterProvider() {
         return SdkMeterProvider.builder()
                 .build();
     }
