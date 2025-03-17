@@ -9,11 +9,16 @@ import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.semconv.ServiceAttributes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -22,29 +27,50 @@ import org.springframework.http.HttpHeaders;
 public class OpentelemetryConfig {
 
     @Bean
-    public OpenTelemetry openTelemetry() {
+    public OpenTelemetry opentelemetry() {
+        Resource resource = resource();
         OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
-                .setLoggerProvider(loggerProvider())
-                .setTracerProvider(tracerProvider())
-                .setMeterProvider(meterProvider())
+                .setTracerProvider(tracerProvider(resource))
+                .setMeterProvider(meterProvider(resource))
+                .setLoggerProvider(loggerProvider(resource))
                 .build();
-        GlobalOpenTelemetry.set(openTelemetry);
+        GlobalOpenTelemetry.set(openTelemetry); // This or the combined `buildAndRegisterGlobal` is required
         return openTelemetry;
     }
 
-    private SdkLoggerProvider loggerProvider() {
-        return SdkLoggerProvider.builder()
+    /**
+     * <blockquote cite="https://opentelemetry.io/docs/languages/java/sdk/#resource">
+     * "An application should associate the same resource with SdkTracerProvider, SdkMeterProvider, SdkLoggerProvider."
+     * </blockquote>
+     */
+    public Resource resource() {
+        return Resource.getDefault()
+                .toBuilder()
+                .put(ServiceAttributes.SERVICE_NAME, ServerApplication.ARTIFACT_ID)
                 .build();
     }
 
-    private SdkTracerProvider tracerProvider() {
+    public SdkTracerProvider tracerProvider(Resource resource) {
+        SpanExporter spanExporter = LoggingSpanExporter.create();
+        SpanProcessor spanProcessor = SpanProcessor.composite(
+                BatchSpanProcessor.builder(spanExporter).build()
+        );
+
         return SdkTracerProvider.builder()
-                .setSampler(Sampler.alwaysOn())
+                .addResource(resource)
+                .addSpanProcessor(spanProcessor)
                 .build();
     }
 
-    private SdkMeterProvider meterProvider() {
+    private SdkMeterProvider meterProvider(Resource resource) {
         return SdkMeterProvider.builder()
+                .addResource(resource)
+                .build();
+    }
+
+    private SdkLoggerProvider loggerProvider(Resource resource) {
+        return SdkLoggerProvider.builder()
+                .addResource(resource)
                 .build();
     }
 

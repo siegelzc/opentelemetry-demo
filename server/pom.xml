@@ -16,6 +16,8 @@
     <properties>
         <opentelemetry-instrumentation.version>2.7.0</opentelemetry-instrumentation.version>
         <opentelemetry-semconv.version>1.25.0-alpha</opentelemetry-semconv.version>
+        <opentelemetry-logback.version>2.14.0-alpha</opentelemetry-logback.version>
+        <opentelemetry-contrib.version>1.45.0-alpha</opentelemetry-contrib.version>
     </properties>
 
     <dependencies>
@@ -75,7 +77,12 @@
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
             <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-            <version>2.14.0-alpha</version>
+            <version>${opentelemetry-logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.contrib</groupId>
+            <artifactId>opentelemetry-span-stacktrace</artifactId>
+            <version>${opentelemetry-contrib.version}</version>
         </dependency>
 
         <!-- Logback -->
