@@ -1,8 +1,10 @@
-package com.example.demo;
+package com.etelie.demo;
 
-import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -10,11 +12,15 @@ import java.io.IOException;
 @Component
 public class DemoClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(DemoClient.class);
+    private final OkHttpClient okHttpClient;
 
     public DemoClient(
             OkHttpClient okHttpClient
     ) {
+        this.okHttpClient = okHttpClient;
+    }
+
+    public String hello(String target) {
         Call call = okHttpClient.newCall(new Request.Builder()
                 .get()
                 .url(new HttpUrl.Builder()
@@ -26,11 +32,14 @@ public class DemoClient {
                         .build())
                 .build());
 
+        String responseString;
         try (Response response = call.execute()) {
-            logger.info(response.body().string());
+            responseString = response.body().string();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        return responseString;
     }
 
 }
