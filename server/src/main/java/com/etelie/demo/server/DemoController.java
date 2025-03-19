@@ -62,6 +62,7 @@ public class DemoController {
             HttpHeaders responseHeaders = new HttpHeaders();
             contextPropagators.getTextMapPropagator()
                     .inject(Context.current(), responseHeaders, httpHeadersSetter);
+            span.end();
 
             return ResponseEntity.ok().headers(responseHeaders).body(message);
         }
