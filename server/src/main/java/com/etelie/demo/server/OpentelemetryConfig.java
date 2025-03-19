@@ -58,20 +58,20 @@ public class OpentelemetryConfig {
         );
 
         return SdkTracerProvider.builder()
-                .addResource(resource)
+                .setResource(resource)
                 .addSpanProcessor(spanProcessor)
                 .build();
     }
 
     private SdkMeterProvider meterProvider(Resource resource) {
         return SdkMeterProvider.builder()
-                .addResource(resource)
+                .setResource(resource)
                 .build();
     }
 
     private SdkLoggerProvider loggerProvider(Resource resource) {
         return SdkLoggerProvider.builder()
-                .addResource(resource)
+                .setResource(resource)
                 .build();
     }
 
