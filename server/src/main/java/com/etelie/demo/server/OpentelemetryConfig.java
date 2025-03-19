@@ -17,6 +17,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.semconv.ServiceAttributes;
 import org.springframework.context.annotation.Bean;
@@ -53,7 +54,7 @@ public class OpentelemetryConfig {
     public SdkTracerProvider tracerProvider(Resource resource) {
         SpanExporter spanExporter = LoggingSpanExporter.create();
         SpanProcessor spanProcessor = SpanProcessor.composite(
-                BatchSpanProcessor.builder(spanExporter).build()
+                SimpleSpanProcessor.builder(spanExporter).build()
         );
 
         return SdkTracerProvider.builder()

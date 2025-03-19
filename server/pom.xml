@@ -85,7 +85,7 @@
             <version>${opentelemetry-contrib.version}</version>
         </dependency>
 
-        <!-- Logback -->
+        <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
@@ -93,6 +93,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>2.0.16</version>
         </dependency>
 
         <!-- Test -->
