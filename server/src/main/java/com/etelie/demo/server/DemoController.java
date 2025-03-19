@@ -1,5 +1,7 @@
 package com.etelie.demo.server;
 
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
@@ -28,17 +30,24 @@ public class DemoController {
     private final TextMapGetter<HttpHeaders> httpHeadersGetter;
     private final TextMapSetter<HttpHeaders> httpHeadersSetter;
     private final Tracer tracer;
+    private final Meter meter;
+    private final LongCounter helloCounter;
 
     public DemoController(
             ContextPropagators contextPropagators,
             TextMapGetter<HttpHeaders> httpHeadersGetter,
             TextMapSetter<HttpHeaders> httpHeadersSetter,
-            Tracer tracer
+            Tracer tracer,
+            Meter meter
     ) {
         this.contextPropagators = contextPropagators;
         this.httpHeadersGetter = httpHeadersGetter;
         this.httpHeadersSetter = httpHeadersSetter;
         this.tracer = tracer;
+        this.meter = meter;
+        this.helloCounter = meter.counterBuilder("hello")
+                .setDescription("Count number of /hello invocations")
+                .build();
     }
 
     @RequestMapping(path = "/hello", method = RequestMethod.GET)
@@ -63,6 +72,8 @@ public class DemoController {
             contextPropagators.getTextMapPropagator()
                     .inject(Context.current(), responseHeaders, httpHeadersSetter);
             span.end();
+
+            helloCounter.add(1);
 
             return ResponseEntity.ok().headers(responseHeaders).body(message);
         }

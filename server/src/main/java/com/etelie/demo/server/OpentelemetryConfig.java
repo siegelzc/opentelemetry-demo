@@ -3,6 +3,7 @@ package com.etelie.demo.server;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -47,14 +48,14 @@ public class OpentelemetryConfig {
      * "An application should associate the same resource with SdkTracerProvider, SdkMeterProvider, SdkLoggerProvider."
      * </blockquote>
      */
-    public Resource resource() {
+    private Resource resource() {
         return Resource.getDefault()
                 .toBuilder()
                 .put(ServiceAttributes.SERVICE_NAME, ServerApplication.ARTIFACT_ID)
                 .build();
     }
 
-    public SdkTracerProvider tracerProvider(Resource resource) {
+    private SdkTracerProvider tracerProvider(Resource resource) {
         SpanExporter spanExporter = LoggingSpanExporter.create();
         SpanProcessor spanProcessor = SpanProcessor.composite(
                 SimpleSpanProcessor.builder(spanExporter).build()
@@ -122,6 +123,13 @@ public class OpentelemetryConfig {
             OpenTelemetry openTelemetry
     ) {
         return openTelemetry.getTracer(ServerApplication.class.getPackageName());
+    }
+
+    @Bean
+    public Meter meterBuilder(
+         OpenTelemetry openTelemetry
+    ) {
+        return openTelemetry.getMeter(ServerApplication.class.getPackageName());
     }
 
 }
