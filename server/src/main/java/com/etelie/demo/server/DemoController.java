@@ -1,5 +1,7 @@
 package com.etelie.demo.server;
 
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
@@ -24,27 +26,32 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/demo")
 public class DemoController {
 
-    private static final Logger logger = LoggerFactory.getLogger(DemoController.class);
+    private static final Logger log = LoggerFactory.getLogger(DemoController.class);
 
     private final ContextPropagators contextPropagators;
     private final TextMapGetter<HttpHeaders> httpHeadersGetter;
     private final TextMapSetter<HttpHeaders> httpHeadersSetter;
     private final Tracer tracer;
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final Meter meter;
     private final LongCounter helloCounter;
+    private final io.opentelemetry.api.logs.Logger logger;
 
     public DemoController(
             ContextPropagators contextPropagators,
             TextMapGetter<HttpHeaders> httpHeadersGetter,
             TextMapSetter<HttpHeaders> httpHeadersSetter,
             Tracer tracer,
-            Meter meter
+            Meter meter,
+            io.opentelemetry.api.logs.Logger logger
     ) {
         this.contextPropagators = contextPropagators;
         this.httpHeadersGetter = httpHeadersGetter;
         this.httpHeadersSetter = httpHeadersSetter;
         this.tracer = tracer;
         this.meter = meter;
+        this.logger = logger;
+
         this.helloCounter = meter.counterBuilder("hello")
                 .setDescription("Count number of /hello invocations")
                 .build();
@@ -65,17 +72,23 @@ public class DemoController {
                     .startSpan();
 
             String message = "Hello %s!".formatted(target);
-            logger.debug(message);
+            log.debug(message);
 
-            span.setAttribute("message", message);
+            logger.logRecordBuilder() // Note: This is for demonstration only. The Log Bridge API shouldn't be used like this.
+                    .setBody(message)
+                    .setAttribute(AttributeKey.stringKey("target"), target)
+                    .setSeverity(Severity.DEBUG)
+                    .emit();
+            span.setAttribute("message", message)
+                    .end();
+            helloCounter.add(1);
+
             HttpHeaders responseHeaders = new HttpHeaders();
             contextPropagators.getTextMapPropagator()
                     .inject(Context.current(), responseHeaders, httpHeadersSetter);
-            span.end();
-
-            helloCounter.add(1);
-
-            return ResponseEntity.ok().headers(responseHeaders).body(message);
+            return ResponseEntity.ok()
+                    .headers(responseHeaders)
+                    .body(message);
         }
     }
 

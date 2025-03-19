@@ -3,6 +3,7 @@ package com.etelie.demo.server;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -12,8 +13,13 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.exporter.logging.LoggingMetricExporter;
 import io.opentelemetry.exporter.logging.LoggingSpanExporter;
+import io.opentelemetry.exporter.logging.SystemOutLogRecordExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
+import io.opentelemetry.sdk.logs.internal.SdkLoggerProviderUtil;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
@@ -77,8 +83,13 @@ public class OpentelemetryConfig {
     }
 
     private SdkLoggerProvider loggerProvider(Resource resource) {
+        LogRecordExporter logRecordExporter = LogRecordExporter.composite(SystemOutLogRecordExporter.create()); // Empty composition creates NoopLogRecordExporter
+        LogRecordProcessor logRecordProcessor = LogRecordProcessor.composite(
+                SimpleLogRecordProcessor.create(logRecordExporter)
+        );
         return SdkLoggerProvider.builder()
                 .setResource(resource)
+                .addLogRecordProcessor(logRecordProcessor)
                 .build();
     }
 
@@ -126,10 +137,17 @@ public class OpentelemetryConfig {
     }
 
     @Bean
-    public Meter meterBuilder(
+    public Meter meter(
          OpenTelemetry openTelemetry
     ) {
         return openTelemetry.getMeter(ServerApplication.class.getPackageName());
+    }
+
+    @Bean
+    public Logger logger(
+            OpenTelemetry openTelemetry
+    ) {
+        return openTelemetry.getLogsBridge().get(ServerApplication.class.getPackageName());
     }
 
 }
