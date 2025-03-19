@@ -19,7 +19,6 @@ import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
-import io.opentelemetry.sdk.logs.internal.SdkLoggerProviderUtil;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
@@ -94,6 +93,27 @@ public class OpentelemetryConfig {
     }
 
     @Bean
+    public Tracer tracer(
+            OpenTelemetry openTelemetry
+    ) {
+        return openTelemetry.getTracer(ServerApplication.class.getPackageName());
+    }
+
+    @Bean
+    public Meter meter(
+            OpenTelemetry openTelemetry
+    ) {
+        return openTelemetry.getMeter(ServerApplication.class.getPackageName());
+    }
+
+    @Bean
+    public Logger logger(
+            OpenTelemetry openTelemetry
+    ) {
+        return openTelemetry.getLogsBridge().get(ServerApplication.class.getPackageName());
+    }
+
+    @Bean
     public ContextPropagators contextPropagators() {
         return ContextPropagators.create(
                 TextMapPropagator.composite(
@@ -127,27 +147,6 @@ public class OpentelemetryConfig {
                 httpHeaders.set(headerName, headerValue);
             }
         };
-    }
-
-    @Bean
-    public Tracer tracer(
-            OpenTelemetry openTelemetry
-    ) {
-        return openTelemetry.getTracer(ServerApplication.class.getPackageName());
-    }
-
-    @Bean
-    public Meter meter(
-         OpenTelemetry openTelemetry
-    ) {
-        return openTelemetry.getMeter(ServerApplication.class.getPackageName());
-    }
-
-    @Bean
-    public Logger logger(
-            OpenTelemetry openTelemetry
-    ) {
-        return openTelemetry.getLogsBridge().get(ServerApplication.class.getPackageName());
     }
 
 }
