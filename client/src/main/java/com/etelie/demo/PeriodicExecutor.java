@@ -11,10 +11,10 @@ public class PeriodicExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(PeriodicExecutor.class);
 
-    private final VoidOperator function;
+    private final VoidSupplier function;
     private final long frequency;
 
-    public PeriodicExecutor(long frequencyMillis, VoidOperator function) {
+    public PeriodicExecutor(long frequencyMillis, VoidSupplier function) {
         this.function = function;
         this.frequency = frequencyMillis;
 
@@ -45,7 +45,7 @@ public class PeriodicExecutor {
 
 
     @FunctionalInterface
-    public static interface VoidOperator {
+    public static interface VoidSupplier {
         public void run();
     }
 
