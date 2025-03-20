@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Execute a function periodically
  */
-@SuppressWarnings({"JavadocReference", "BusyWait"})
+@SuppressWarnings({"BusyWait"})
 public class PeriodicExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(PeriodicExecutor.class);
