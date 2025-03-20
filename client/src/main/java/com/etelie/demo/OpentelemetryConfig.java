@@ -1,4 +1,4 @@
-package com.etelie.demo.server;
+package com.etelie.demo;
 
 import com.etelie.demo.telemetry.OpentelemetryFactory;
 import io.opentelemetry.api.OpenTelemetry;
@@ -15,7 +15,7 @@ public class OpentelemetryConfig {
 
     @Bean
     public OpenTelemetry openTelemetry() {
-        return OpentelemetryFactory.create(ServerApplication.ARTIFACT_ID);
+        return OpentelemetryFactory.create(ClientApplication.ARTIFACT_ID);
     }
 
     @Bean
