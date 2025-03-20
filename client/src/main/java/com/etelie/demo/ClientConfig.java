@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ClientConfig {
 
-    private static Logger log = LoggerFactory.getLogger(ClientConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(ClientConfig.class);
 
     @Bean
     public PeriodicExecutor helloExecutor(
