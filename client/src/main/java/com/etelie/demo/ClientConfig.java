@@ -16,8 +16,8 @@ public class ClientConfig {
             DemoClient demoClient
     ) {
         return new PeriodicExecutor(5000, () -> {
-            String response = demoClient.hello("friend");
-            log.debug("hello response: {}", response);
+            String response = demoClient.scoped(String.class, demoClient::hello, "friend");
+            log.debug("HELLO RESPONSE:\n{}", response);
         });
     }
 

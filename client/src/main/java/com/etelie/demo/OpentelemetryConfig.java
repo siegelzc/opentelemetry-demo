@@ -5,6 +5,10 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.semconv.ServiceAttributes;
+import okhttp3.Headers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,6 +41,16 @@ public class OpentelemetryConfig {
             OpenTelemetry openTelemetry
     ) {
         return openTelemetry.getLogsBridge().get(INSTRUMENTATION_SCOPE_NAME);
+    }
+
+    @Bean
+    public TextMapSetter<Headers.Builder> okhttpHeadersBuilderSetter() {
+        return new TextMapSetter<Headers.Builder>() {
+            @Override
+            public void set(Headers.Builder carrier, String key, String value) {
+                carrier.set(key, value);
+            }
+        };
     }
 
 }
