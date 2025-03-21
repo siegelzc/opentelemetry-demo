@@ -59,26 +59,20 @@ public class DemoController {
                 .build();
     }
 
-    private <T extends Object> ResponseEntity<T> scoped(HttpHeaders headers, Supplier<ResponseEntity<T>> supplier) {
-        Context extractedContext = contextPropagators.getTextMapPropagator()
-                .extract(Context.current(), headers, httpHeadersGetter);
-
-        try (Scope ignored = extractedContext.makeCurrent()) {
-            return supplier.get();
-        }
-    }
-
     @RequestMapping(path = "/hello", method = RequestMethod.GET)
     public ResponseEntity<String> hello(
             @RequestParam("target") String target,
             @RequestHeader HttpHeaders headers
     ) {
-        return scoped(headers, () -> {
-            Span span = tracer.spanBuilder("hello")
-                    .setSpanKind(SpanKind.SERVER)
-                    .setAttribute("target", target)
-                    .startSpan();
+        Span span = tracer.spanBuilder("hello")
+                .setSpanKind(SpanKind.SERVER)
+                .setAttribute("target", target)
+                .startSpan();
+        Context requestContext = contextPropagators.getTextMapPropagator()
+                .extract(Context.current(), headers, httpHeadersGetter)
+                .with(span);
 
+        try (Scope ignored = requestContext.makeCurrent()) {
             String message = "Hello %s!".formatted(target);
             log.debug(message);
 
@@ -97,7 +91,7 @@ public class DemoController {
             return ResponseEntity.ok()
                     .headers(responseHeaders)
                     .body(message);
-        });
+        }
     }
 
 }
