@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.function.Supplier;
+
 @Controller
 @RequestMapping("/demo")
 public class DemoController {
@@ -57,15 +59,21 @@ public class DemoController {
                 .build();
     }
 
+    private <T extends Object> ResponseEntity<T> scoped(HttpHeaders headers, Supplier<ResponseEntity<T>> supplier) {
+        Context extractedContext = contextPropagators.getTextMapPropagator()
+                .extract(Context.current(), headers, httpHeadersGetter);
+
+        try (Scope ignored = extractedContext.makeCurrent()) {
+            return supplier.get();
+        }
+    }
+
     @RequestMapping(path = "/hello", method = RequestMethod.GET)
     public ResponseEntity<String> hello(
             @RequestParam("target") String target,
             @RequestHeader HttpHeaders headers
     ) {
-        Context extractedContext = contextPropagators.getTextMapPropagator()
-                .extract(Context.current(), headers, httpHeadersGetter);
-
-        try (Scope ignored = extractedContext.makeCurrent()) {
+        return scoped(headers, () -> {
             Span span = tracer.spanBuilder("hello")
                     .setSpanKind(SpanKind.SERVER)
                     .setAttribute("target", target)
@@ -89,7 +97,7 @@ public class DemoController {
             return ResponseEntity.ok()
                     .headers(responseHeaders)
                     .body(message);
-        }
+        });
     }
 
 }
